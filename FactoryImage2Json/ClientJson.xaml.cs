@@ -18,8 +18,8 @@ namespace FactoryImage2Json
 
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
         {
-            Toolkit toolkit = new Toolkit(versionTb.Text, versionCodeTb.Text, updateLinkTb.Text, xdaThreadLinkTb.Text, noteLinkTb.Text);
-            Images images = new Images(versionTextTb.Text, versionIntTb.Text);
+            Toolkit toolkit = new Toolkit(versionTb.Text, int.Parse(versionCodeTb.Text), updateLinkTb.Text, xdaThreadLinkTb.Text, noteLinkTb.Text);
+            Images images = new Images(versionTextTb.Text, int.Parse(versionIntTb.Text));
 
             Client client = new Client(toolkit, images);
 
@@ -70,13 +70,13 @@ namespace FactoryImage2Json
         {
             // Fill out the textboxes
             versionTb.Text = client.Toolkit.Version;
-            versionCodeTb.Text = client.Toolkit.VersionCode;
+            versionCodeTb.Text = client.Toolkit.VersionCode.ToString();
             updateLinkTb.Text = client.Toolkit.UpdateLink;
             xdaThreadLinkTb.Text = client.Toolkit.XdaThreadLink;
             noteLinkTb.Text = client.Toolkit.Note;
 
             versionTextTb.Text = client.Images.Version;
-            versionIntTb.Text = client.Images.VersionCode;
+            versionIntTb.Text = client.Images.VersionCode.ToString();
         }
     }
 }
