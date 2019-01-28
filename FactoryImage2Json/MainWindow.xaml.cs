@@ -27,17 +27,31 @@ namespace FactoryImage2Json
 
         private async void LoadTableBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (int.TryParse(tableNoTb.Text, out int tableNo))
+            // Split text by commas
+            string[] tableNos = tableNoTb.Text.Split(',');
+            if (tableNos.Length > 1)
             {
-                factoryImages = LoadFactoryImages(tableNo);
+                // More than one table
+                int[] tables = Array.ConvertAll(tableNos, s => int.Parse(s));
+                factoryImages = LoadFactoryImages(tables);
                 // Load into Data Grid
                 factoryImagesDg.ItemsSource = await factoryImages;
             }
             else
             {
-                MessageBox.Show("Please enter a valid number...");
-                tableNoTb.Clear();
+                if (int.TryParse(tableNoTb.Text, out int tableNo))
+                {
+                    factoryImages = LoadFactoryImages(tableNo);
+                    // Load into Data Grid
+                    factoryImagesDg.ItemsSource = await factoryImages;
+                }
+                else
+                {
+                    MessageBox.Show("Please enter a valid number...");
+                    tableNoTb.Clear();
+                }
             }
+            
         }
 
         private async Task<List<FactoryImage>> LoadFactoryImages(int tableNo)
@@ -70,6 +84,45 @@ namespace FactoryImage2Json
 
                 // Create the Factory Image and add it to the list of factory images
                 factoryImages.Add(new FactoryImage(linkSplit[6], versionSplit[0], linkSplit[7].ToUpper(), linkSplit[9].Substring(0,8), version, link, checksum));
+            }
+
+            return factoryImages;
+        }
+
+        private async Task<List<FactoryImage>> LoadFactoryImages(int[] tableNos)
+        {
+            List<FactoryImage> factoryImages = new List<FactoryImage>();
+
+            // AngleSharp, rip table contents
+            var config = Configuration.Default.WithDefaultLoader();
+            var source = "https://developers.google.com/android/images";
+            var context = BrowsingContext.New(config);
+            var document = await context.OpenAsync(source);
+
+            // Locate all tables in the site (containing the factory images)
+            var tables = document.QuerySelectorAll("table");
+            // Locate the desired table
+            foreach (int num in tableNos)
+            {
+                // Pick table
+                var table = (IHtmlTableElement)tables[num];
+                var tableContents = table.Rows;
+                // Go through each row after the first one (title row)
+                for (int i = 1; i < tableContents.Length; i++)
+                {
+                    var rowChildren = tableContents[i].Children;
+                    // Child 1 - Version, child 2 - Link (href), child 3 - Checksum
+                    string version = rowChildren[0].TextContent;
+                    string link = ((IHtmlAnchorElement)rowChildren[1].FirstChild).Href.ToString();
+                    string checksum = rowChildren[2].TextContent;
+
+                    // Split up version and link by '/' and '-' to get individual elements
+                    string[] versionSplit = version.Split(' ');
+                    string[] linkSplit = link.Split(new char[] { '/', '-' });
+
+                    // Create the Factory Image and add it to the list of factory images
+                    factoryImages.Add(new FactoryImage(linkSplit[6], versionSplit[0], linkSplit[7].ToUpper(), linkSplit[9].Substring(0, 8), version, link, checksum));
+                }
             }
 
             return factoryImages;
