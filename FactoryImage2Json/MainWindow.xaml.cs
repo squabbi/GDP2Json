@@ -31,17 +31,25 @@ namespace FactoryImage2Json
             string[] tableNos = tableNoTb.Text.Split(',');
             if (tableNos.Length > 1)
             {
-                // More than one table
-                int[] tables = Array.ConvertAll(tableNos, s => int.Parse(s));
-                factoryImages = LoadFactoryImages(tables);
-                // Load into Data Grid
-                factoryImagesDg.ItemsSource = await factoryImages;
+                
+                    // More than one table
+                    int[] tables = Array.ConvertAll(tableNos, s => int.Parse(s));
+                    factoryImages = LoadFactoryImages(tables);
+                    // Load into Data Grid
+                    factoryImagesDg.ItemsSource = await factoryImages;
+                
             }
             else
             {
                 if (int.TryParse(tableNoTb.Text, out int tableNo))
                 {
                     factoryImages = LoadFactoryImages(tableNo);
+                    // Load into Data Grid
+                    factoryImagesDg.ItemsSource = await factoryImages;
+                }
+                else if (tableNos[0].Equals("a"))
+                {
+                    factoryImages = LoadAllFactoryImages();
                     // Load into Data Grid
                     factoryImagesDg.ItemsSource = await factoryImages;
                 }
@@ -187,17 +195,16 @@ namespace FactoryImage2Json
             Process.Start(Environment.CurrentDirectory);
         }
 
-        private async void LoadAllBtn_Click(object sender, RoutedEventArgs e)
-        {
-            factoryImages = LoadAllFactoryImages();
-            // Load into Data Grid
-            factoryImagesDg.ItemsSource = await factoryImages;
-        }
-
         private void ClipboardBtn_Click(object sender, RoutedEventArgs e)
         {
             string json = JsonConvert.SerializeObject(factoryImages.Result);
             Clipboard.SetText(json);
+        }
+
+        private void ClientJsonBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ClientJson clientJson = new ClientJson();
+            clientJson.Show();
         }
     }
 }
